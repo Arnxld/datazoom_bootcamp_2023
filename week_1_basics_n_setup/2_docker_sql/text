@@ -1,0 +1,80 @@
+docker run -it --name nytaxipg \
+    -e POSTGRES_USER="root" \
+    -e POSTGRES_PASSWORD="root" \
+    -e POSTGRES_DB="ny_taxi" \
+    -v "//wsl$/Ubuntu/home/pedro/data-engineering-zoomcamp/week_1_basics_n_setup/2_docker_sql/ny_taxi_postgres_data:/var/lib/postgresql/data" \
+    -p 5432:5432 \
+    postgres:13
+
+pgcli -h localhost -p 5432 -u root -d ny_taxi
+#erro no pgcli
+#tive que seguir https://stackoverflow.com/questions/12728004/error-no-module-named-psycopg2-extensions
+
+docker run -it \
+    -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+    -e PGADMIN_DEFAULT_PASSWORD="root" \
+    -p 8080:80 \
+    dpage/pgadmin4
+
+#-------------------------------------------------------1.2.4---------------------------------------------------------------------------------------------
+
+# crio a network para conectar os dois containers
+# network apenas para teste local
+docker network create pg-network
+
+docker run -it \
+    -e POSTGRES_USER="root" \
+    -e POSTGRES_PASSWORD="root" \
+    -e POSTGRES_DB="ny_taxi" \
+    -v "/home/pedro/data-engineering-zoomcamp/week_1_basics_n_setup/2_docker_sql/ny_taxi_postgres_data:/var/lib/postgresql/data" \
+    -p 5432:5432 \
+    --network=pg-network \
+    --name pg-database \
+    postgres:13
+
+docker run -it \
+    -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" \
+    -e PGADMIN_DEFAULT_PASSWORD="root" \
+    -p 8080:80 \
+    --network=pg-network \
+    --name pgadmin \
+    dpage/pgadmin4
+
+# a network é necessária pq o container do pgadmin procuraria o host dentro do próprio container. Ao rodar os dois containers na network, podemos especificar o nome do pg-database como host ao registrar o server no pgadmin
+# ingest_data.py é o jupyter notebook transformado em script
+#
+URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz"
+
+#testando se o script deu certo
+python ingest_data.py \
+    --user=root \
+    --password=root \
+    --host=localhost \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=yellow_taxi_trips \
+    --url=${URL}
+
+# o docker build cria uma imagem de acordo com o Dockerfile
+# dockerfile já está copiando o ingest_data
+docker build -t taxi_ingest:v001 .
+
+#network deve ser a mesma que os containers do docker-compose estão
+docker run -it \
+    --network=2_docker_sql_default\
+    taxi_ingest:v001 \
+        --user=root \
+        --password=root \
+        --host=pgdatabase \
+        --port=5432 \
+        --db=ny_taxi \
+        --table_name=yellow_taxi_trips \
+        --url=${URL}
+    
+
+#-------------------------------------------------------1.2.5---------------------------------------------------------------------------------------------
+# criação do docker-compose
+# agora os containers dentro do docker-compose são parte da mesma network automaticamente
+# agora docker compose para não precisar rodar cada "docker run" em um terminal diferente
+
+docker-compose up
