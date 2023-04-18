@@ -1,0 +1,86 @@
+https://www.youtube.com/watch?v=ae-CV2KfoN0&list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb&index=14
+Setting up the Environment on Google Cloud (Cloud VM + SSH acces)
+
+
+criação de VM na GCP
+
+1. gerar chave ssh na minha maquina local. diretorio ~/.ssh (WSL deu problema, gerar no windows)
+https://cloud.google.com/compute/docs/connect/create-ssh-keys
+ssh-keygen -t rsa -f gcp -C pedro -b 2048
+
+2. colocar a chave publica gerada na google cloud
+    - dentro da gcp: compute-engine->metadata->ssh keys
+    info: todas as vm's criadas nesse projeto terão essa chave ssh
+
+3. Criar uma VM no google cloud.
+    - pegamos o ip externo para fazer a conexão ssh. usar a chave ssh criada na minha maquina junto com o username da chave
+    ssh -i ~/.ssh/gcp pedro@34.130.191.78
+
+------------------------- Configuração VM ---------------------------------
+
+1. instalar anaconda
+wget https://repo.anaconda.com/archive/Anaconda3-2022.10-Linux-x86_64.sh (instalador linux no site anaconda)
+
+2. Na maquina local, criar um arquivo config na pasta ~/.ssh. Com isso é possível fazer a conexão ssh apenas escrevendo ssh de-zoomcamp
+    Host de-zoomcamp
+        HostName <vm-external-ip>
+        User pedro
+        IdentityFile ~/.ssh/gcp
+
+tive problemas no wsl. Tive que fazer no windows.
+Problema: no decorrer da aula o instrutor mostra remote-ssh no vscode, e não consegui fazer com a chave no wsl       
+
+3. sudo apt-get update && sudo apt-get install docker.io
+
+4. configurar para poder rodar o docker sem sudo
+https://github.com/sindresorhus/guides/blob/main/docker-without-sudo.md
+
+5. clonar repo do bootcamp 
+    git clone https://github.com/DataTalksClub/data-engineering-zoomcamp.git
+
+5.1 instalar docker-compose
+    wget https://github.com/docker/compose/releases/download/v2.6.1/docker-compose-linux-x86_64
+    obs: o wget foi feito dentro de uma pasta bin criada no ~ e necessário fazer o chmod do arquivo que foi renomeado para docker-compose 
+    Esta pasta deve ser incluída no path dentro do ~/.bashrc
+    chmod +x docker-compose
+    export PATH="${HOME}/bin:${PATH}" 
+
+6. subir o docker-compose no dir ~/data-engineering-zoomcamp/week_1_basics_n_setup/2_docker_sql
+    docker-compose up -d
+
+
+7. instalar pgcli e conectar no banco
+    pgcli -h localhost -U root -d ny_taxi
+    tive que rodar pip install keyrings.alt
+
+
+-----------------------mapear porta do container postgres:13 para a maquina local (vscode remote-ssh extension)
+
+dentro da conexão ssh, na aba ports
+
+---------------------------------------------------------------------------------------------------------------
+
+na VM
+
+1. jupyter notebook dentro da pasta 2_docker_sql
+
+2. pip install psycopg2 na maquina
+
+3. wget no csv de viagens de taxi https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz e gunzip para rodar o notebook criado anteriormente
+
+4. rodar o notebook até inserir as 100 linhas.
+
+5. baixar binário do terraform na pasta ~/bin. necessário unzip
+
+6. ~/.gc colocar a chave .json do google cloud
+
+-------------------------------- configurar google cloud na VM --------------------------------
+
+export GOOGLE_APPLICATION_CREDENTIALS=~/.gc/dtc-de-380503-005bfc80c993.json
+gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS (essa é a chave do iam service account)
+
+-----------------------------------------------------------------------------------------------
+
+7. terraform init/plan/apply na pasta 1_terraform_gcp/terraform/
+
+no final da aula a instancia é deletada
