@@ -1,2 +1,5 @@
 /week_1_basics_n_setup/2_docker_sql/ny_taxi_postgres_data
 /week_1_basics_n_setup/2_docker_sql/output.csv
+/week_2_workflow_orchestration/data
+/week_2_workflow_orchestration/flows/03/__pycache__
+/week_2_workflow_orchestration/flows/03/.prefectignore

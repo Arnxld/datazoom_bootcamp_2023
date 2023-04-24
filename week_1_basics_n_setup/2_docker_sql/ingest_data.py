@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import os
 import argparse # named cli arguments
 
@@ -24,7 +21,7 @@ def main(params):
     os.system(f"wget {url} -O {zip_csv_name}")
     os.system(f"gunzip {zip_csv_name}")
 
-    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}') # cria a engine?
+    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}') # cria a conexao com o db
 
 
     df_iter = pd.read_csv(csv_name, iterator=True, chunksize=100000) # cria o iterator em cima dos dados
