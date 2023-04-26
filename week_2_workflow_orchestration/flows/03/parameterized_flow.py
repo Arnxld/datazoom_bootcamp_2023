@@ -28,8 +28,14 @@ def clean(df= pd.DataFrame) -> pd.DataFrame:
 @task(log_prints=True)
 def write_local(df: pd.DataFrame, color: str, dataset_file: str) -> Path:
     """Write DataFrame out as parquet file"""
-    path = Path(f"/home/pedro/data-engineering-zoomcamp/week_2_workflow_orchestration/data/{color}/{dataset_file}.parquet")
+    # path = Path(f"/home/pedro/data-engineering-zoomcamp/week_2_workflow_orchestration/data/{color}/{dataset_file}.parquet")
     #path = Path(f"../../data/{color}/{dataset_file}.parquet")
+
+    #path fix according to Zoomcamp FAQ https://docs.google.com/document/d/19bnYs80DwuUimHM65UV3sylsCn2j1vziPOwzBwQrebw/edit#
+    path = Path(f"../../data/{color}/{dataset_file}.parquet")
+
+    if not path.parent.is_dir():
+        path.parent.mkdir(parents=True)
 
     df.to_parquet(path, compression="gzip")
     print(path)
