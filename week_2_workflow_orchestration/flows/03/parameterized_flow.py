@@ -79,7 +79,6 @@ def etl_parent_flow(
     year: int = 2021,
     color: str = 'yellow'
 ):
-    print('Será que é só com mudança na imagem?')
     for month in months:
         etl_web_to_gcs(color, year, month)
 
